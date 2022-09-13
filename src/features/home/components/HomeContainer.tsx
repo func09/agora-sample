@@ -7,6 +7,7 @@ import { httpsCallable } from "firebase/functions";
 import { functions } from "../../../configs/firebase";
 import { Heading, Button, VStack, HStack, Stack, Text } from "@chakra-ui/react";
 import { auth } from "../../../configs/firebase";
+import { useAgora } from "../hooks/useAgora";
 
 const options = {
   appId: process.env.NEXT_PUBLIC_AGORA_APP_ID as string,
@@ -27,44 +28,10 @@ const generateToken = httpsCallable<
   GenerateTokenResponse
 >(functions, "generateToken");
 
-let client: IAgoraRTCClient;
-
 const HomeContainer = () => {
+  const { client } = useAgora();
   const currentUser = auth.currentUser;
   const [isConnected, setIsConnected] = useState(false);
-
-  const setupAgora = async () => {
-    client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-    client.on("user-published", async (user, mediaType) => {
-      await client.subscribe(user, mediaType);
-      console.log("subscribe success", user, mediaType);
-
-      if (mediaType === "audio") {
-        // Get the RemoteAudioTrack object in the AgoraRTCRemoteUser object.
-        const remoteAudioTrack = user.audioTrack;
-        if (remoteAudioTrack) {
-          remoteAudioTrack.play();
-        }
-      }
-      client.on("user-unpublished", async (user) => {
-        // Unsubscribe from the tracks of the remote user.
-        await client.unsubscribe(user);
-      });
-      client.on("user-joined", async (user) => {
-        alert(`User joined: ${user.uid}`);
-        console.log("user-joined", user);
-      });
-      client.on("user-left", async (user) => {
-        alert(`User left: ${user.uid}`);
-        console.log("user-left", user);
-      });
-    });
-  };
-
-  useEffect(() => {
-    console.log("SETUP AGORA");
-    setupAgora();
-  }, []);
 
   const getChannelToken = async (channel: string, uid: string) => {
     const response = await generateToken({ channel: options.channel, uid: uid });
