@@ -15,6 +15,7 @@ const options = {
 
 type GenerateTokenRequest = {
   channel: string;
+  uid: string;
 };
 
 type GenerateTokenResponse = {
@@ -65,14 +66,14 @@ const HomeContainer = () => {
     setupAgora();
   }, []);
 
-  const getChannelToken = async () => {
-    const response = await generateToken({ channel: options.channel });
+  const getChannelToken = async (channel: string, uid: string) => {
+    const response = await generateToken({ channel: options.channel, uid: uid });
     const data = response.data;
     return data.token;
   };
 
   const onClickJoin = async () => {
-    const token = await getChannelToken();
+    const token = await getChannelToken(options.channel, currentUser!.uid);
     await client.join(options.appId, options.channel, token, currentUser?.uid);
     const localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
     await client.publish([localAudioTrack]);
