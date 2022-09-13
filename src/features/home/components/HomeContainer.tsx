@@ -73,7 +73,7 @@ const HomeContainer = () => {
 
   const onClickJoin = async () => {
     const token = await getChannelToken();
-    await client.join(options.appId, options.channel, token);
+    await client.join(options.appId, options.channel, token, currentUser?.uid);
     const localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
     await client.publish([localAudioTrack]);
     console.log("publish success!");
