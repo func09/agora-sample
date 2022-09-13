@@ -1,8 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import { Heading, Button, VStack } from "@chakra-ui/react";
-import { auth } from "../../configs/firebase";
-import { signInAnonymously } from "firebase/auth";
 import { useAuth } from "../../hooks/useAuth";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
