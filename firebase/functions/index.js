@@ -1,8 +1,8 @@
 const functions = require("firebase-functions");
 const {RtcTokenBuilder, RtcRole} = require("agora-access-token");
 
-const APP_ID = process.env.APP_ID;
-const APP_CERTIFICATE = process.env.APP_CERTIFICATE;
+const APP_ID = process.env.AGORA_APP_ID;
+const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
 
 exports.getTest2 = functions.https.onCall((data, context) => {
   console.log(data);
