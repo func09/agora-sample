@@ -1,31 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AgoraRTC from "agora-rtc-sdk-ng";
-import { httpsCallable } from "firebase/functions";
-import { functions } from "../../../configs/firebase";
 import { Heading, Button, VStack, HStack, Stack, Text } from "@chakra-ui/react";
 import { auth, db } from "../../../configs/firebase";
 import { useAgora } from "../hooks/useAgora";
 import { useRoom } from "../hooks/useRoom";
 import { doc, updateDoc } from "firebase/firestore";
+import { getChannelToken } from "../usecases/getChannelToken";
 
 const options = {
   appId: process.env.NEXT_PUBLIC_AGORA_APP_ID as string,
   channel: "Test",
 };
-
-type GenerateTokenRequest = {
-  channel: string;
-  uid: string;
-};
-
-type GenerateTokenResponse = {
-  token: string;
-};
-
-const generateToken = httpsCallable<
-  GenerateTokenRequest,
-  GenerateTokenResponse
->(functions, "generateToken");
 
 const HomeContainer = () => {
   const { client } = useAgora();
@@ -35,15 +20,6 @@ const HomeContainer = () => {
     currentUser?.uid as string
   );
   const [isConnected, setIsConnected] = useState(false);
-
-  const getChannelToken = async (channel: string, uid: string) => {
-    const response = await generateToken({
-      channel: options.channel,
-      uid: uid,
-    });
-    const data = response.data;
-    return data.token;
-  };
 
   const onClickJoin = async () => {
     if (!isAuthenticated()) {
