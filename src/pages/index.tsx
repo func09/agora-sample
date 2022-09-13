@@ -1,12 +1,28 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import styles from "../styles/Home.module.css";
-import dynamic from 'next/dynamic'
-const HomeContainer = dynamic(() => import('../features/home/components/HomeContainer'), {
-  ssr: false,
-})
+import dynamic from "next/dynamic";
+const HomeContainer = dynamic(
+  () => import("../features/home/components/HomeContainer"),
+  {
+    ssr: false,
+  }
+);
+
+import { useAuth } from "../hooks/useAuth";
+import { useEffect } from "react";
 
 const Home: NextPage = () => {
+  const router = useRouter();
+  const { isLogin, user } = useAuth();
+
+  useEffect(() => {
+    if (!isLogin) {
+      router.replace("/sessions/new");
+    }
+  }, [isLogin, router]);
+
   return (
     <div className={styles.container}>
       <Head>

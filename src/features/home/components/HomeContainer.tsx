@@ -5,6 +5,8 @@ import AgoraRTC, {
 } from "agora-rtc-sdk-ng";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../../../configs/firebase";
+import { Heading, Button, VStack, HStack, Stack, Text } from "@chakra-ui/react";
+import { auth } from "../../../configs/firebase";
 
 const options = {
   appId: process.env.NEXT_PUBLIC_AGORA_APP_ID as string,
@@ -13,18 +15,22 @@ const options = {
 
 type GenerateTokenRequest = {
   channel: string;
-}
+};
 
 type GenerateTokenResponse = {
   token: string;
-}
+};
 
-const generateToken = httpsCallable<GenerateTokenRequest,GenerateTokenResponse>(functions, "generateToken");
+const generateToken = httpsCallable<
+  GenerateTokenRequest,
+  GenerateTokenResponse
+>(functions, "generateToken");
 
+let client: IAgoraRTCClient;
 
 const HomeContainer = () => {
-  let client: IAgoraRTCClient;
-  let localAudioTrack: IMicrophoneAudioTrack;
+  const currentUser = auth.currentUser;
+  const [isConnected, setIsConnected] = useState(false);
 
   const setupAgora = async () => {
     client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
@@ -55,35 +61,50 @@ const HomeContainer = () => {
   };
 
   useEffect(() => {
+    console.log("SETUP AGORA");
     setupAgora();
   }, []);
 
   const getChannelToken = async () => {
-    const response = await generateToken({channel: options.channel});
+    const response = await generateToken({ channel: options.channel });
     const data = response.data;
     return data.token;
-  }
+  };
 
   const onClickJoin = async () => {
     const token = await getChannelToken();
     await client.join(options.appId, options.channel, token);
-    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+    const localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
     await client.publish([localAudioTrack]);
     console.log("publish success!");
+    setIsConnected(true);
   };
 
   const onClickLeave = async () => {
-    localAudioTrack.close();
+    client.localTracks.forEach((v) => v.close());
     await client.leave();
+    setIsConnected(false);
   };
+
+  if (!currentUser) {
+    return null;
+  }
 
   return (
     <>
-      <div>
-        <h1>Home</h1>
-        <button onClick={onClickJoin}>JOIN</button>
-        <button onClick={onClickLeave}>LEAVE</button>
-      </div>
+      <VStack>
+        <Heading>Voice Chat</Heading>
+        <Stack>
+          <Text>User: {currentUser.uid}</Text>
+        </Stack>
+        <HStack>
+          {isConnected ? (
+            <Button onClick={onClickLeave}>LEAVE</Button>
+          ) : (
+            <Button onClick={onClickJoin}>JOIN</Button>
+          )}
+        </HStack>
+      </VStack>
     </>
   );
 };
